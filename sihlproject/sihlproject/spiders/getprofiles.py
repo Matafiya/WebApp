@@ -1,11 +1,12 @@
 import json
 import scrapy
-
+import os
 class QuotesSpider(scrapy.Spider):
     name = "getprofiles"
 
     def start_requests(self):
-        with open ("./product.json") as f:
+        print('current dir is' +os.getcwd())
+        with open ("product.json") as f:
             papers = json.load(f)
         urls = []
         for paper in papers:
@@ -15,7 +16,10 @@ class QuotesSpider(scrapy.Spider):
             yield scrapy.Request(url=url, callback=self.parse)
 
     def parse(self, response):
-        for profile in response.css('ul.naked-list'):
-            yield {
-                'profiles': profile.css('a::attr(href)').getall()
-            }
+        for profile in response.css('div.accordion-content ul li'):
+            if profile.css('a.accordion-title::text').get() is not None:
+                yield {
+                    'paper':response.css('title::text').getall(),
+                    'printer':profile.css('a.accordion-title::text').get(),
+                    'profiles':profile.css('ul.naked-list li a::attr(href)').getall()
+                }
